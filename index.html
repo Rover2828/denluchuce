@@ -1,0 +1,194 @@
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户认证系统</title>
+    <style>
+        :root {
+            --space-blue: #0a1931;
+            --nebula-purple: #6a1b9a;
+            --rocket-red: #d32f2f;
+            --star-gold: #ffd700;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--space-blue) 30%, var(--nebula-purple));
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .form-switch {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-switch button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            margin: 0 1rem;
+            cursor: pointer;
+            padding-bottom: 5px;
+            transition: all 0.3s;
+        }
+
+        .form-switch button.active {
+            border-bottom: 2px solid var(--star-gold);
+            color: var(--star-gold);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--star-gold);
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--rocket-red);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="form-switch">
+            <button class="active" onclick="switchForm('login')">登录</button>
+            <button onclick="switchForm('register')">注册</button>
+        </div>
+
+        <!-- 登录表单 -->
+        <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>电子邮箱</label>
+                <input type="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" class="form-control" required minlength="6">
+            </div>
+            <button type="submit" class="submit-btn">立即登录</button>
+        </form>
+
+        <!-- 注册表单 -->
+        <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>电子邮箱</label>
+                <input type="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>设置密码</label>
+                <input type="password" class="form-control" required minlength="6">
+            </div>
+            <div class="form-group">
+                <label>确认密码</label>
+                <input type="password" class="form-control" required minlength="6">
+            </div>
+            <button type="submit" class="submit-btn">立即注册</button>
+        </form>
+    </div>
+
+    <script>
+        function switchForm(formType) {
+            // 切换按钮状态
+            document.querySelectorAll('.form-switch button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 切换表单显示
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(formType + 'Form').classList.add('active');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = e.target[0].value;
+            const password = e.target[1].value;
+            
+            // 这里添加登录逻辑
+            console.log('登录尝试:', { email, password });
+            alert('登录功能需连接后端服务器');
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const username = e.target[0].value;
+            const email = e.target[1].value;
+            const password = e.target[2].value;
+            const confirmPassword = e.target[3].value;
+
+            if (password !== confirmPassword) {
+                alert('两次密码输入不一致！');
+                return;
+            }
+
+            // 这里添加注册逻辑
+            console.log('注册信息:', { username, email, password });
+            alert('注册功能需连接后端服务器');
+        }
+    </script>
+</body>
+</html>
