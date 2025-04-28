@@ -1,6 +1,11 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>用户认证系统</title>
     <style>
+        /* 原有CSS样式保持不变 */
         :root {
             --space-blue: #0a1931;
             --nebula-purple: #6a1b9a;
@@ -149,14 +154,15 @@
     </div>
 
     <script>
+        // 初始化用户数据存储
+        let users = JSON.parse(localStorage.getItem('zhuce')) || [];
+
         function switchForm(formType) {
-            // 切换按钮状态
             document.querySelectorAll('.form-switch button').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
 
-            // 切换表单显示
             document.querySelectorAll('.auth-form').forEach(form => {
                 form.classList.remove('active');
             });
@@ -167,10 +173,16 @@
             e.preventDefault();
             const email = e.target[0].value;
             const password = e.target[1].value;
+
+            // 在用户数据中查找匹配项
+            const user = users.find(u => u.email === email && u.password === password);
             
-            // 这里添加登录逻辑
-            console.log('登录尝试:', { email, password });
-            alert('登录功能需连接后端服务器');
+            if (user) {
+                alert(`登录成功！欢迎回来 ${user.username}`);
+                // 这里可以添加页面跳转逻辑
+            } else {
+                alert('邮箱或密码不正确！');
+            }
         }
 
         function handleRegister(e) {
@@ -180,14 +192,32 @@
             const password = e.target[2].value;
             const confirmPassword = e.target[3].value;
 
+            // 验证密码一致性
             if (password !== confirmPassword) {
                 alert('两次密码输入不一致！');
                 return;
             }
 
-            // 这里添加注册逻辑
-            console.log('注册信息:', { username, email, password });
-            alert('注册功能需连接后端服务器');
+            // 检查邮箱是否已注册
+            if (users.some(u => u.email === email)) {
+                alert('该邮箱已被注册！');
+                return;
+            }
+
+            // 创建新用户对象
+            const newUser = {
+                username,
+                email,
+                password
+            };
+
+            // 添加新用户并更新存储
+            users.push(newUser);
+            localStorage.setItem('zhuce', JSON.stringify(users));
+            
+            alert('注册成功！现在可以登录了');
+            switchForm('login');
+            e.target.reset();
         }
     </script>
 </body>
