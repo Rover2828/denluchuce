@@ -14,8 +14,9 @@
         .captcha-btn {
             position: absolute;
             right: 8px;
-            top: 50%;
+            top: calc(50% + 5px);
             transform: translateY(-50%);
+            height: calc(100% - 12px);
             background: var(--rocket-red);
             color: white;
             border: none;
@@ -23,13 +24,14 @@
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
         }
 
         .captcha-btn:disabled {
             background: #666;
             cursor: not-allowed;
         }
-
         /* 原有CSS样式保持不变 */
         :root {
             --space-blue: #0a1931;
@@ -213,16 +215,8 @@
 
         function showCaptcha() {
             const code = generateCode();
-            const modal = document.createElement('div');
-            modal.innerHTML = `
-                <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); 
-                           background:white; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.2)">
-                    <h3>系统验证码</h3>
-                    <p>${code}</p>
-                    <button onclick="this.parentElement.remove()">关闭</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
+            // 改用浏览器原生弹窗
+            alert(`系统验证码：\n\n${code}\n\n验证码5分钟内有效`);
         }
 
         function verifyCode(inputCode) {
