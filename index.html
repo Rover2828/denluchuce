@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>用户认证系统</title>
     <style>
+        /* 新增验证码相关样式 */
+        .captcha-group {
+            position: relative;
+            margin-top: 1rem;
+        }
+
+        .captcha-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--rocket-red);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .captcha-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
         /* 原有CSS样式保持不变 */
         :root {
             --space-blue: #0a1931;
@@ -110,6 +135,8 @@
             }
         }
     </style>
+    <!-- 新增加密库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
     <div class="auth-container">
@@ -127,6 +154,11 @@
             <div class="form-group">
                 <label>密码</label>
                 <input type="password" class="form-control" required minlength="6">
+            </div>
+            <div class="form-group captcha-group">
+                <label>验证码</label>
+                <input type="text" class="form-control" placeholder="输入验证码" required>
+                <button type="button" class="captcha-btn" onclick="requestCaptcha()">获取验证码</button>
             </div>
             <button type="submit" class="submit-btn">立即登录</button>
         </form>
@@ -149,6 +181,11 @@
                 <label>确认密码</label>
                 <input type="password" class="form-control" required minlength="6">
             </div>
+            <div class="form-group captcha-group">
+                <label>验证码</label>
+                <input type="text" class="form-control" placeholder="输入验证码" required>
+                <button type="button" class="captcha-btn" onclick="requestCaptcha()">获取验证码</button>
+            </div>
             <button type="submit" class="submit-btn">立即注册</button>
         </form>
     </div>
@@ -156,7 +193,71 @@
     <script>
         // 初始化用户数据存储
         let users = JSON.parse(localStorage.getItem('zhuce')) || [];
+        let lastRequest = 0;
 
+        // 验证码相关功能
+        function generateCode() {
+            const code = Math.random().toString().slice(2,8);
+            const expireTime = Date.now() + 300000;
+            
+            // 加密存储
+            const encrypted = btoa(JSON.stringify({ 
+                code: code, 
+                expire: expireTime,
+                hash: CryptoJS.SHA256(code + 'salt').toString()
+            }));
+            
+            sessionStorage.setItem('captcha', encrypted);
+            return code;
+        }
+
+        function showCaptcha() {
+            const code = generateCode();
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); 
+                           background:white; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.2)">
+                    <h3>系统验证码</h3>
+                    <p>${code}</p>
+                    <button onclick="this.parentElement.remove()">关闭</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function verifyCode(inputCode) {
+            const stored = sessionStorage.getItem('captcha');
+            if (!stored) return { valid: false, msg: "请先获取验证码" };
+
+            try {
+                const decrypted = JSON.parse(atob(stored));
+                if (CryptoJS.SHA256(decrypted.code + 'salt').toString() !== decrypted.hash) {
+                    return { valid: false, msg: "数据异常" };
+                }
+
+                if (Date.now() > decrypted.expire) {
+                    return { valid: false, msg: "验证码已过期" };
+                }
+
+                return {
+                    valid: inputCode === decrypted.code,
+                    msg: inputCode === decrypted.code ? "验证成功" : "验证码错误"
+                };
+            } catch {
+                return { valid: false, msg: "验证码无效" };
+            }
+        }
+
+        function requestCaptcha() {
+            if (Date.now() - lastRequest < 60000) {
+                alert("操作过于频繁");
+                return;
+            }
+            lastRequest = Date.now();
+            showCaptcha();
+        }
+
+        // 原有功能
         function switchForm(formType) {
             document.querySelectorAll('.form-switch button').forEach(btn => {
                 btn.classList.remove('active');
@@ -171,15 +272,22 @@
 
         function handleLogin(e) {
             e.preventDefault();
-            const email = e.target[0].value;
-            const password = e.target[1].value;
+            const inputs = e.target.elements;
+            const captchaResult = verifyCode(inputs[2].value);
 
-            // 在用户数据中查找匹配项
-            const user = users.find(u => u.email === email && u.password === password);
-            
+            if (!captchaResult.valid) {
+                alert(captchaResult.msg);
+                return;
+            }
+
+            const user = users.find(u => 
+                u.email === inputs[0].value && 
+                u.password === inputs[1].value
+            );
+
             if (user) {
                 alert(`登录成功！欢迎回来 ${user.username}`);
-                window.location.replace('https://rover2828.github.io/RSTyidenlu') // 这里可以添加页面跳转逻辑
+                window.location.replace('https://rover2828.github.io/RSTyidenlu');
             } else {
                 alert('邮箱或密码不正确！');
             }
@@ -187,31 +295,30 @@
 
         function handleRegister(e) {
             e.preventDefault();
-            const username = e.target[0].value;
-            const email = e.target[1].value;
-            const password = e.target[2].value;
-            const confirmPassword = e.target[3].value;
+            const inputs = e.target.elements;
+            const captchaResult = verifyCode(inputs[4].value);
 
-            // 验证密码一致性
-            if (password !== confirmPassword) {
+            if (!captchaResult.valid) {
+                alert(captchaResult.msg);
+                return;
+            }
+
+            if (inputs[2].value !== inputs[3].value) {
                 alert('两次密码输入不一致！');
                 return;
             }
 
-            // 检查邮箱是否已注册
-            if (users.some(u => u.email === email)) {
+            if (users.some(u => u.email === inputs[1].value)) {
                 alert('该邮箱已被注册！');
                 return;
             }
 
-            // 创建新用户对象
             const newUser = {
-                username,
-                email,
-                password
+                username: inputs[0].value,
+                email: inputs[1].value,
+                password: inputs[2].value
             };
 
-            // 添加新用户并更新存储
             users.push(newUser);
             localStorage.setItem('zhuce', JSON.stringify(users));
             
