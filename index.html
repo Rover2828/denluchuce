@@ -216,7 +216,7 @@
         function showCaptcha() {
             const code = generateCode();
             // 改用浏览器原生弹窗
-            alert(`系统验证码：\n\n${code}\n\n验证码5分钟内有效`);
+            alert(`系统验证码：\n\n${code}\n\n验证码5分钟内有效（输入验证码以让我们知道你不是机器人）`);
         }
 
         function verifyCode(inputCode) {
