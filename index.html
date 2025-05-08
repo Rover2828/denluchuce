@@ -235,7 +235,7 @@
 
                 return {
                     valid: inputCode === decrypted.code,
-                    msg: inputCode === decrypted.code ? "验证成功" : "验证码错误"
+                    msg: inputCode === decrypted.code ? "验证成功" : "验证码错误（你是机器人吧？）"
                 };
             } catch {
                 return { valid: false, msg: "验证码无效" };
